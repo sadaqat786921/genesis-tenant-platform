@@ -410,9 +410,12 @@ button.mcell:hover { box-shadow: inset 0 0 0 1.5px currentColor; }
 .searchwrap { position: relative; flex: 0 1 300px; min-width: 170px; }
 .searchwrap .search { width: 100%; }
 .header .btn { flex: none; }
-.nav { padding: 7px 10px; }
-.sb-nav > .sb-group { margin-top: 7px; padding-top: 7px; }
+/* tenant sidebar: roomier spacing from the client's Sidebar.svg (44px rows, 2px apart, 8px around each divider) */
+.nav { padding: 12px 10px; }
+.sb-nav > .sb-group { margin-top: 8px; padding-top: 8px; }
 .sb-logo { padding-bottom: 14px; }
+.nav.on::before { top: 12px; bottom: 12px; }
+@media (max-height: 760px) { .nav { padding: 9px 10px; } .sb-logo { padding-bottom: 10px; } }
 .roomgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; }
 .roomcard b, .roomcard .chip { white-space: nowrap; }
 .phero .stat b { font-size: 16px; line-height: 22px; }

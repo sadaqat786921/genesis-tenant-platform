@@ -51,7 +51,7 @@ export function Sidebar({ onLogout }: { onLogout: () => void }) {
             </button>); })}
         </div>)}
       </nav>
-      <div className="sb-user"><Avatar name={w.name} size="md" />{!collapsed && <button className="stack" style={{ border: 0, background: 'none', padding: 0, textAlign: 'left', cursor: 'pointer' }} onClick={() => s.go('account')}><b style={{ fontSize: 13, color: 'var(--text-primary)' }}>{w.name}</b><span className="caption">{s.role === 'tenant' ? `Tenant · ${myHome(s).address.split(',')[0]}` : 'Applicant'}</span></button>}<button onClick={onLogout} aria-label="Log out" title="Log out"><LogOut size={18} strokeWidth={1.8} /></button></div>
+      <div className="sb-user"><Avatar name={w.name} size="md" />{!collapsed && <button className="stack" style={{ border: 0, background: 'none', padding: 0, margin: 0, textAlign: 'left', alignItems: 'flex-start', cursor: 'pointer' }} onClick={() => s.go('account')}><b style={{ fontSize: 13, color: 'var(--text-primary)' }}>{w.name}</b><span className="caption">{s.role === 'tenant' ? `Tenant · ${myHome(s).address.split(',')[0]}` : 'Applicant'}</span></button>}<button onClick={onLogout} aria-label="Log out" title="Log out"><LogOut size={18} strokeWidth={1.8} /></button></div>
     </aside>
   );
 }
