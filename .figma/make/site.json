@@ -1,0 +1,7 @@
+{
+  "title": "Genesis · Tenant",
+  "description": "Landlord Service Plans — Genesis Tenant portal: application and move-in, rent and payments, repairs, visits, tenancy, moving out, documents, messages and account.",
+  "language": "en-GB",
+  "robots": { "index": false },
+  "icons": { "icon": "favicon.svg" }
+}
