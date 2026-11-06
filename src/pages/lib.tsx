@@ -92,7 +92,7 @@ export function RepairReport({ j, onClose }: { j: Job; onClose: () => void }) {
 }
 /** Staff wording turned into what a tenant should read (no prices, no internal steps). */
 export function tenantText(t: string) {
-  if (/Approved by Supervisor/.test(t)) return 'Approved by LSP';
+  if (/Approved by Supervisor|Approved by the Office Admin/.test(t)) return /sent to the (landlord|owner)/.test(t) ? 'Approved by LSP. The landlord is asked to approve the work' : 'Approved by LSP';
   if (/approves the invoice|to approve before work starts/i.test(t)) return 'Waiting for the landlord to approve the work';
   return t.replace(/\s*\(£[^)]*\)/g, '').replace(/ £[\d,.]+/g, '');
 }

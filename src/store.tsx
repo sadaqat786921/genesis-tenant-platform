@@ -1,5 +1,7 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
 import * as D from './data';
+import { seedRooms, type Room } from './rooms';
+import type { Damage } from './damage';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 /* Tenant portal. Two demo sign-ins:
@@ -36,6 +38,9 @@ interface Store {
   requests: TReq[]; setRequests: Setter<TReq>;
   visits: Record<string, VisitAnswer>; answerVisit: (id: string, a: VisitAnswer) => void;
   read: string[]; markRead: (ids: string[]) => void;
+  /** Rooms of the home (view only) and damage quotes sent to this tenant. */
+  rooms: Room[]; setRooms: Setter<Room>;
+  damages: Damage[]; setDamages: Setter<Damage>;
 }
 const Ctx = createContext<Store>(null as unknown as Store);
 export const useStore = () => useContext(Ctx);
@@ -89,12 +94,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const setApp = useCallback((fn: (a: D.Applicant) => D.Applicant) => setAppState(a => fn(a)), []);
   const answerVisit = useCallback((id: string, a: VisitAnswer) => setVisits(v => ({ ...v, [id]: a })), []);
   const markRead = useCallback((ids: string[]) => setRead(r => [...new Set([...r, ...ids])]), []);
+  const [rooms, setRooms] = useList(seedRooms(D.PROPERTIES.filter(p => p.id === ME_T.property || p.id === ME_A.property)));
+  const [damages, setDamages] = useList(D.DAMAGES.filter(d => d.tenant === ME_T.id));
   const value = useMemo(() => ({
     route, detail, go, toast, toasts, log, activity, role, setRole, me, setMe, app, setApp,
     properties: D.PROPERTIES.filter(p => p.id === ME_T.property || p.id === ME_A.property), contractors: D.CONTRACTORS, staff: D.STAFF,
     jobs, setJobs, inspections: D.INSPECTIONS.filter(i => i.property === ME_T.property), safety: D.SAFETY.filter(c => c.property === ME_T.property),
-    rent, setRent, notices: D.NOTICES, requests, setRequests, visits, answerVisit, read, markRead,
-  }), [route, detail, go, toast, toasts, log, activity, role, setRole, me, setMe, app, setApp, jobs, setJobs, rent, setRent, requests, setRequests, visits, answerVisit, read, markRead]);
+    rent, setRent, notices: D.NOTICES, requests, setRequests, visits, answerVisit, read, markRead, rooms, setRooms, damages, setDamages,
+  }), [rooms, setRooms, damages, setDamages, route, detail, go, toast, toasts, log, activity, role, setRole, me, setMe, app, setApp, jobs, setJobs, rent, setRent, requests, setRequests, visits, answerVisit, read, markRead]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 

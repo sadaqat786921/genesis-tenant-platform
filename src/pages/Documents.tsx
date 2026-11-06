@@ -1,3 +1,4 @@
+import { damageLabel } from '../damage';
 import { useState } from 'react';
 import { FileText, Download, Eye, FolderOpen } from 'lucide-react';
 import { useStore } from '../store';
@@ -6,8 +7,8 @@ import { Btn, Card, Chip, Empty, Kpi, FilterBar, applyFlt, useFlt, yearsOf } fro
 import { PageHeader, crumbsFor } from '../Shell';
 import { InspectionModal, RepairReport, type S } from './lib';
 
-type Kind = 'Tenancy' | 'Safety certificate' | 'Inspection report' | 'Repair report' | 'Guide' | 'My documents' | 'Rent';
-interface Doc { id: string; name: string; kind: Kind; date: string; note: string; view?: { type: 'insp' | 'job' | 'tenancy' | 'rent'; id: string } }
+type Kind = 'Tenancy' | 'Safety certificate' | 'Inspection report' | 'Repair report' | 'Guide' | 'My documents' | 'Rent' | 'Damage quote';
+interface Doc { id: string; name: string; kind: Kind; date: string; note: string; view?: { type: 'insp' | 'job' | 'tenancy' | 'rent' | 'damage'; id: string } }
 
 /** Documents the person signed in is allowed to see. Nothing about the landlord's money or other tenants. */
 function docsOf(s: S): Doc[] {
@@ -30,6 +31,7 @@ function docsOf(s: S): Doc[] {
     ...s.inspections.filter(i => i.status === 'Locked').map(i => ({ id: i.id, name: `${i.kind} inspection report`, kind: 'Inspection report' as Kind, date: i.doneAt!.split(',')[0], note: 'Checked and locked by LSP', view: { type: 'insp' as const, id: i.id } })),
     ...s.jobs.filter(j => ['Approved', 'Invoiced'].includes(j.status)).map(j => ({ id: 'R' + j.id, name: `Repair report · ${j.title}`, kind: 'Repair report' as Kind, date: j.events[j.events.length - 1].at.split(',')[0], note: `${j.proof?.length ?? 0} photos`, view: { type: 'job' as const, id: j.id } })),
     { id: 'RS', name: 'Rent statement', kind: 'Rent', date: '15 Oct 2026', note: 'Every month so far', view: { type: 'rent', id: '' } },
+    ...s.damages.filter(d => d.sent).map(d => ({ id: d.id, name: `Damage quote ${d.quoteNo} · ${d.title}`, kind: 'Damage quote' as Kind, date: d.sent!.split(',')[0], note: `${damageLabel(d.status, true)}`, view: { type: 'damage' as const, id: d.id } })),
   ];
 }
 
@@ -38,7 +40,7 @@ export function Documents() {
   const all = docsOf(s).sort((a, b) => parseDate(b.date).getTime() - parseDate(a.date).getTime());
   const list = applyFlt(all, f, { text: d => `${d.name} ${d.note}`, type: d => d.kind, date: d => d.date });
   const dl = (d: Doc) => { s.log(`Downloaded ${d.name}`, 'Documents'); s.toast('Download started'); };
-  const view = (d: Doc) => { if (!d.view) return dl(d); if (d.view.type === 'tenancy') return s.go('tenancy'); if (d.view.type === 'rent') return s.go('rent'); setOpen(d); };
+  const view = (d: Doc) => { if (!d.view) return dl(d); if (d.view.type === 'tenancy') return s.go('tenancy'); if (d.view.type === 'rent') return s.go('rent'); if (d.view.type === 'damage') return s.go('rent', d.view.id); setOpen(d); };
   const n = (k: Kind[]) => all.filter(d => k.includes(d.kind)).length;
   return <>
     <PageHeader crumbs={crumbsFor('documents', s.go)} title="Documents" />

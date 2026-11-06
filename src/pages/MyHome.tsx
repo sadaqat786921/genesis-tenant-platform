@@ -1,3 +1,4 @@
+import { RoomsCard } from './Rooms';
 import { useState } from 'react';
 import { Home, ShieldCheck, Download, MessageSquare, Wrench, BookOpen, Bell, KeyRound, PoundSterling, CalendarDays } from 'lucide-react';
 import { useStore, money } from '../store';
@@ -28,6 +29,7 @@ export function MyHome() {
         </div>
       </div>
     </section>
+    <RoomsCard p={p} compact title={tenant ? 'Rooms in your home' : 'Rooms in your new home'} />
     <div className="grid g2">
       <Card title="How your home works" sub="Where things are and what to check. From the move-in visit." action={<BookOpen size={18} color="#667085" />}>
         {guide.length ? <KV rows={guide} /> : <Note>LSP will add this after the move-in visit.</Note>}

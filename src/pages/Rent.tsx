@@ -1,3 +1,4 @@
+import { DamageCharges } from './Damage';
 import { useState } from 'react';
 import { PoundSterling, Landmark, CheckCircle2, Download, HeartHandshake, Copy, CalendarClock, Receipt } from 'lucide-react';
 import { useStore, money, rentStatus, type TReq } from '../store';
@@ -39,6 +40,7 @@ export function Rent() {
           s.setRent(rs => rs.map(x => x.id === r.id ? { ...x, paid: Math.min(x.amount, x.paid + r.reported!.amount), history: [...x.history, { date: r.reported!.date, amount: r.reported!.amount, note: 'Bank transfer · checked by LSP' }], reported: undefined } : x));
           lspSays(s, `Payment received: ${r.month}`, `Thanks, we've received ${money(r.reported!.amount)} for ${r.month}.`); s.toast(`LSP recorded ${money(r.reported!.amount)}`);
         }}>LSP finds {money(r.reported!.amount)} in the bank</Btn>)}</DemoAnswer>}
+        <DamageCharges />
       </div>
       <div className="col">
         <Card title="How to pay" sub="Pay LSP by bank transfer or standing order. Always use your reference.">

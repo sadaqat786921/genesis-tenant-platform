@@ -1,4 +1,6 @@
-import { Wrench, MessageSquare, PoundSterling, CalendarDays, ShieldCheck, Home as HomeIcon, Bell, ArrowRight, CircleCheck, Phone, FileSignature } from 'lucide-react';
+import { damageToDo } from './Damage';
+import { damageTotal } from '../damage';
+import { Wrench, MessageSquare, PoundSterling, CalendarDays, ShieldCheck, Home as HomeIcon, Bell, ArrowRight, CircleCheck, Phone, FileSignature, Hammer } from 'lucide-react';
 import { useStore, money } from '../store';
 import { daysFrom, parseDate, LSP_PHONE } from '../data';
 import { Btn, Card, Chip, Kpi, Note, Empty } from '../ui';
@@ -21,6 +23,7 @@ export default function HomePage() {
     ...(owedSum ? [{ k: 'rent', icon: <PoundSterling size={18} />, t: `Pay ${money(owedSum)} rent`, d: `${owed.map(r => r.month).join(', ')} · still owed`, go: () => s.go('rent'), cta: 'Pay' }] : []),
     ...toConfirm.map(i => ({ k: i.id, icon: <CalendarDays size={18} />, t: `Confirm ${i.kind.toLowerCase()} visit`, d: `${i.date}, ${i.time}`, go: () => s.go('visits', i.id), cta: 'Confirm' })),
     ...fixedAsk.map(j => ({ k: j.id, icon: <Wrench size={18} />, t: `Is it fixed? ${j.title}`, d: 'Let LSP know', go: () => s.go('repairs', j.id), cta: 'Answer' })),
+    ...damageToDo(s).map(d => ({ k: d.id, icon: <Hammer size={18} />, t: d.status === 'Quote sent' ? `Damage quote · ${money(damageTotal(d))}` : `Pay damage · ${money(damageTotal(d))}`, d: `${d.title} · ${d.status === 'Quote sent' ? 'agree or disagree' : d.payHow === 'Deposit' ? 'from your deposit' : 'you agreed'}`, go: () => s.go('rent', d.id), cta: d.status === 'Quote sent' ? 'Answer' : 'Open' })).filter(x => !x.d.includes('from your deposit')),
     ...(unread ? [{ k: 'msg', icon: <MessageSquare size={18} />, t: `${unread} new message${unread > 1 ? 's' : ''} from LSP`, d: 'Read and reply', go: () => s.go('messages'), cta: 'Open' }] : []),
   ];
   const coming = [
