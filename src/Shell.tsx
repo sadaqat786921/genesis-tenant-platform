@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState, type ReactNode } from 'react';
+import { appTodo } from './pages/Application';
 import {
   LayoutDashboard, MessageSquare, Home, FileSignature, Wrench, CalendarDays, PoundSterling, FolderOpen, Settings, ClipboardList,
   PanelLeft, LogOut, Search, Bell, ChevronRight, ArrowRight, ArrowLeft, Eye, EyeOff, ShieldAlert, ShieldCheck, KeyRound, Check, UserCheck,
@@ -32,7 +33,7 @@ export function useCounts() {
     repairs: s.jobs.filter(j => !DONE_JOB.includes(j.status)).length,
     visits: s.inspections.filter(i => i.status !== 'Locked' && daysFrom(i.date) >= 0 && !s.visits[i.id]).length,
     rent: s.rent.filter(r => r.paid < r.amount && daysFrom(r.due) < 0).length,
-    application: s.app.kyc.filter(k => ['Missing', 'Rejected'].includes(k.status)).length,
+    application: s.app.form && !s.app.form.submitted && s.app.stage === 2 ? Math.max(1, appTodo(s.app).length) : appTodo(s.app).length,
   } as Partial<Record<Route, number>>;
 }
 
@@ -78,7 +79,7 @@ export function PageHeader({ title, action, crumbs, back }: { title: ReactNode; 
     ...s.jobs.filter(j => ['Approved', 'Invoiced'].includes(j.status) && !j.tenantFixed && daysFrom(j.events[j.events.length - 1].at.split(',')[0]) > -45).map(j => ({ t: `Is it fixed? ${j.title}`, d: 'Tell LSP if it is still a problem', r: 'repairs' as Route, id: j.id, tone: 'info' })),
     ...w.comms.filter(c => c.dir === 'out' && !s.read.includes(c.id)).map(c => ({ t: 'New message from LSP', d: c.subject ?? c.text.slice(0, 50), r: 'messages' as Route, id: null, tone: 'info' })),
   ] : [
-    ...s.app.kyc.filter(k => ['Missing', 'Rejected'].includes(k.status)).map(k => ({ t: `${k.status === 'Rejected' ? 'Upload again' : 'Upload'}: ${k.name.split(' (')[0]}`, d: k.note ?? 'Needed for your application', r: 'application' as Route, id: null as string | null, tone: k.status === 'Rejected' ? 'err' : 'warn' })),
+    ...appTodo(s.app).map(({ who, k }) => ({ t: `${k.status === 'Rejected' ? 'Upload again' : 'Upload'}: ${k.name.split(' (')[0]}${who === 'You' ? '' : ` for ${who}`}`, d: k.note ?? 'Needed for your application', r: 'application' as Route, id: null as string | null, tone: k.status === 'Rejected' ? 'err' : 'warn' })),
     ...w.comms.filter(c => c.dir === 'out' && !s.read.includes(c.id)).map(c => ({ t: 'New message from LSP', d: c.subject ?? '', r: 'messages' as Route, id: null, tone: 'info' })),
   ];
   const cal = tenant ? [

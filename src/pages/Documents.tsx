@@ -15,7 +15,7 @@ function docsOf(s: S): Doc[] {
   if (s.role === 'applicant') {
     const a = s.app;
     return [
-      ...a.kyc.filter(k => k.file).map(k => ({ id: 'K' + k.name, name: k.name.split(' (')[0], kind: 'My documents' as Kind, date: (k.at ?? a.applied).split(',')[0], note: `${k.file} · ${k.status === 'Verified' ? 'checked by LSP' : k.status === 'Rejected' ? 'please upload again' : 'LSP checking'}` })),
+      ...[...a.kyc.map(k => ({ k, who: '' })), ...(a.form?.people ?? []).filter(q => !q.pays).flatMap(q => (q.kyc ?? []).map(k => ({ k, who: q.name })))].filter(({ k }) => k.file).map(({ k, who }) => ({ id: 'K' + who + k.name, name: k.name.split(' (')[0] + (who ? ` · ${who}` : ''), kind: 'My documents' as Kind, date: (k.at ?? a.applied).split(',')[0], note: `${k.file} · ${k.status === 'Verified' ? 'checked by LSP' : k.status === 'Rejected' ? 'please upload again' : 'LSP checking'}` })),
       { id: 'G1', name: 'How to Rent guide (GOV.UK)', kind: 'Guide', date: a.since, note: 'Your rights and responsibilities as a tenant' },
       { id: 'G2', name: 'Energy Performance Certificate', kind: 'Safety certificate', date: a.since, note: 'For the home you are applying for' },
       ...(a.checks.contract ? [{ id: 'AG', name: 'Tenancy agreement (signed)', kind: 'Tenancy' as Kind, date: '15 Oct 2026', note: 'Signed by you' }] : []),

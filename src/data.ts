@@ -116,12 +116,18 @@ export const ENQUIRIES: Enquiry[] = [
 export const LET_STAGES = ['Applied', 'Contact', 'Screening (KYC)', 'Deposit & referencing', 'Supervisor review', 'Move-in', 'Moved in'] as const;
 export const KYC_DOCS = ['Photo ID (passport or driving licence)', 'Proof of address', 'Right to rent share code', 'Proof of income (3 payslips)', 'Bank statements (3 months)'];
 export type RefStatus = 'Not started' | 'Waiting' | 'Passed' | 'Failed';
+/** Someone else who will live in the home. Adults who share the rent and bills ("pays") go through the full checks with their own login;
+ *  other adults only need ID for the right to rent check; children only their name and age. */
+export interface HousePerson { id: string; name: string; relation: string; adult: boolean; age?: number; pays: boolean; email?: string; phone?: string; work?: string; employer?: string; income?: number; kyc?: KycDoc[]; invited?: string; joined?: string }
+/** The application form the applicant fills in on the portal after LSP's invite (tenant portal step 3). */
+export interface AppForm { about: { dob: string; current: string; since: string; work: string; employer: string; income: number; pets: string; smoker: string }; people: HousePerson[]; payMode?: 'alone' | 'shared'; invited?: string; joined?: string; submitted?: string }
 export interface Applicant {
   id: string; name: string; email: string; phone: string; property: string; room?: string; stage: number; source: 'Rightmove' | 'Website' | 'Zoopla' | 'Enquiry';
   admin?: string; applied: string; since: string; household: string; budget: number; moveIn: string; employment: string; income: number; pets: string; current: string;
   portal: boolean; kyc: KycDoc[]; checks: { deposit: boolean; contract: boolean; reference: RefStatus }; deposit: number; moveInAt?: string;
   rejected?: { reason: string; at: string; by: string }; comms: Comm[]; tenant?: string; review?: string;
-  /** Tenant portal: what the applicant has done themselves. */ tn?: { holdingPaid?: string; refForm?: string; signedAt?: string; signedName?: string; balancePaid?: string; attend?: string; howToRent?: string };
+  /** Tenant portal: the application form filled in on the portal. */ form?: AppForm;
+  /** Tenant portal: what the applicant has done themselves. */ tn?: { holdingPaid?: string; refForm?: string; signedAt?: string; signedName?: string; coSigned?: string; balancePaid?: string; attend?: string; howToRent?: string };
 }
 const kyc = (n: number, extra: Partial<Record<number, Partial<KycDoc>>> = {}): KycDoc[] => KYC_DOCS.map((name, i) => ({ name, status: i < n ? 'Uploaded' : 'Missing', ...(i < n ? { file: name.split(' (')[0].toLowerCase().replace(/ /g, '-') + '.pdf', at: '14 Oct 2026, 18:2' + i } : {}), ...(extra[i] ?? {}) }));
 const verified = (): KycDoc[] => KYC_DOCS.map((name, i) => ({ name, status: 'Verified', file: name.split(' (')[0].toLowerCase().replace(/ /g, '-') + '.pdf', at: '2 Oct 2026, 11:1' + i }));
@@ -570,7 +576,7 @@ export const LL_ACTIVITY: Activity[] = [
 /* =====================================================================
    Tenant portal
    Daniel Price (T14) lives at Flat 4, 19 Highgate Hill (landlord Margaret Okafor, managed by LSP).
-   Aisha Rahman (AP11) is applying for 31 Ash Grove and is at the Screening stage.
+   Aisha Rahman (AP11) is applying for 31 Ash Grove. She accepted LSP's invite and is filling in her application.
    ===================================================================== */
 RENT.unshift(
   ...(['May', 'Jun', 'Jul', 'Aug', 'Sep'] as const).map((m, i) => ({ id: 'R14' + m, tenant: 'T14', month: `${m} 2026`, due: `1 ${m} 2026`, amount: 1350, paid: 1350, history: [{ date: `${i === 2 ? 2 : 1} ${m} 2026`, amount: 1350, note: i === 0 ? 'Bank transfer · first month' : 'Standing order' }], reminders: [] })),
@@ -599,20 +605,27 @@ export const HOME_GUIDE: { property: string; items: [string, string][] }[] = [
 ];
 
 /* ---------- applicant: Aisha Rahman, applying for 31 Ash Grove ---------- */
-APPLICANTS.push({ id: 'AP11', name: 'Aisha Rahman', email: 'aisha.rahman@mail.co.uk', phone: '07700 902011', property: 'P4', stage: 2, source: 'Website', admin: 'et', applied: '6 Oct 2026, 13:20', since: '12 Oct 2026', household: '2 adults', budget: 1200, moveIn: '1 Nov 2026', employment: 'Pharmacist, Boots', income: 41000, pets: 'None', current: '17 Cromwell Road, London N7', portal: true,
+APPLICANTS.push({ id: 'AP11', name: 'Aisha Rahman', email: 'aisha.rahman@mail.co.uk', phone: '07700 902011', property: 'P4', stage: 2, source: 'Enquiry', admin: 'et', applied: '6 Oct 2026, 13:20', since: '12 Oct 2026', household: '2 adults, 1 child', budget: 1200, moveIn: '1 Nov 2026', employment: 'Pharmacist, Boots (part-time)', income: 29500, pets: 'None', current: '17 Cromwell Road, London N7', portal: true,
   kyc: [
-    { name: KYC_DOCS[0], status: 'Verified', file: 'passport.pdf', at: '12 Oct 2026, 20:14' },
-    { name: KYC_DOCS[1], status: 'Verified', file: 'council-tax-bill.pdf', at: '12 Oct 2026, 20:16' },
-    { name: KYC_DOCS[2], status: 'Rejected', file: 'share-code.pdf', at: '12 Oct 2026, 20:18', note: 'The share code has expired. Please get a new one from GOV.UK and upload it.' },
+    { name: KYC_DOCS[0], status: 'Uploaded', file: 'passport.pdf', at: '12 Oct 2026, 20:14' },
+    { name: KYC_DOCS[1], status: 'Uploaded', file: 'council-tax-bill.pdf', at: '12 Oct 2026, 20:16' },
+    { name: KYC_DOCS[2], status: 'Missing' },
     { name: KYC_DOCS[3], status: 'Missing' },
     { name: KYC_DOCS[4], status: 'Missing' },
   ],
+  form: {
+    about: { dob: '14 Mar 1991', current: '17 Cromwell Road, London N7', since: '3 years', work: 'Employed, part-time', employer: 'Boots, pharmacist (4 days a week)', income: 29500, pets: 'None', smoker: 'No' },
+    people: [
+      { id: 'HP1', name: 'Omar Rahman', relation: 'Husband', adult: true, pays: false, email: 'omar.rahman@mail.co.uk', phone: '07700 902012', kyc: [{ name: KYC_DOCS[0], status: 'Missing' }, { name: KYC_DOCS[2], status: 'Missing' }] },
+      { id: 'HP2', name: 'Maryam Rahman', relation: 'Daughter', adult: false, age: 6, pays: false },
+    ],
+    invited: '8 Oct 2026, 10:20', joined: '12 Oct 2026, 20:05',
+  },
   checks: { deposit: false, contract: false, reference: 'Not started' }, deposit: 1326,
   comms: [
-    c('6 Oct 2026, 13:20', 'Aisha Rahman', 'Portal', 'Applied for 31 Ash Grove from the LSP website.', 'in', 'Application'),
-    c('8 Oct 2026, 10:00', 'Emma Thompson', 'Call', 'Called Aisha. The viewing went well and she wants to go ahead. Portal login sent from Outlook.', 'out', 'Phone call'),
-    c('12 Oct 2026, 09:00', 'Emma Thompson', 'Email', 'Your portal is ready. Please upload your ID, proof of address, right to rent share code, 3 payslips and 3 months of bank statements.', 'out', 'Next step: upload your documents'),
-    c('14 Oct 2026, 10:30', 'Emma Thompson', 'Email', 'Thanks Aisha. Your ID and proof of address are checked. The share code has expired, so please upload a new one, plus your payslips and bank statements.', 'out', 'Documents: one to redo, two to add'),
+    c('6 Oct 2026, 13:20', 'Aisha Rahman', 'Call', 'Called LSP about 31 Ash Grove after seeing it on the website. Wants to move in from 1 November with her husband and daughter.', 'in', 'Enquiry by phone'),
+    c('8 Oct 2026, 10:00', 'Emma Thompson', 'Call', 'Called Aisha back. The viewing went well and she wants to go ahead. Sent her an invite to the LSP portal to fill in her application.', 'out', 'Phone call'),
+    c('8 Oct 2026, 10:20', 'Emma Thompson', 'Email', 'Your invite to the LSP portal: set your password, then fill in your application. Tell us about you, who will live with you and who pays the rent, and upload your documents.', 'out', 'Your invite: apply for 31 Ash Grove'),
   ] });
 
 /* ---------- tenant damage: quotes sent to tenants for damage they caused ---------- */

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { householdOf } from './Application';
 import { Pencil, KeyRound, LogOut, ShieldCheck, Users, Download } from 'lucide-react';
 import { useStore, who } from '../store';
 import { nowStamp, LSP_PHONE } from '../data';
@@ -20,7 +21,7 @@ export function Account() {
         <KV rows={[['Email', w.email], ['Phone', w.phone], ...(tenant ? [['Emergency contact', s.me.emergency] as [string, string]] : [['Current address', s.app.current] as [string, string]]), ['Your contact at LSP', myAdmin(s)?.name ?? 'LSP']]} />
       </Card>
       <Card title="Who lives here" sub="Everyone over 18 must be named on the tenancy.">
-        <div className="lrow"><Users size={18} color="var(--text-brand)" /><div className="stack grow"><b>{tenant ? `${s.me.name} (tenant)` : s.app.household}</b><span className="caption">{tenant ? 'Named on the agreement' : 'From your application'}</span></div></div>
+        <div className="lrow"><Users size={18} color="var(--text-brand)" /><div className="stack grow"><b>{tenant ? `${s.me.name} (tenant)` : householdOf(s.app)}</b><span className="caption">{tenant ? 'Named on the agreement' : 'From your application'}</span></div></div>
         <Btn sm kind="ghost" onClick={() => sendMsg(s, 'Someone moving in or out', 'I would like to tell LSP about a change in who lives in the home.')}>Tell LSP about a change</Btn>
       </Card>
       <Card title="Notifications" sub="How LSP tells you about things.">
